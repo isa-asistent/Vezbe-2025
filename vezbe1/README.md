@@ -14,7 +14,7 @@ Kada dodate novu zavisnost u pom.xml, na snimanje izmena će se automatski pokre
 
 * [Opseg i životni ciklus serverskih komponenti](https://www.youtube.com/watch?v=AMQcujPq8Wg)
 * [Dependency Injection](https://www.youtube.com/watch?v=XjgA8vZ-TcM)
-* [Spring.pdf](https://github.com/stojkovm/isara2021vezbe/blob/main/Vezbe02/Spring.pdf) iz foldera _Vezbe02_
+* Spring.pdf
 
 ## springapp-example
 
@@ -44,7 +44,6 @@ Kontroleri su anotirani sa *@RestController*. Anotacija je izvedena od anotacije
 ###### Materijali koje je neophodno proučiti da bi se primer mogao uspešno ispratiti:
 
 * [Arhitekture klasičnih i savremenih web aplikacija](https://www.youtube.com/watch?v=XnEnUtSw8Rc)
-* [REST.pdf](https://github.com/stojkovm/isara2021vezbe/blob/main/Vezbe03/REST.pdf) iz foldera _Vezbe03_
 
 ###### Struktura primera
 
@@ -88,7 +87,7 @@ Pored predefinisanih anotacija za postavljanje ograničenja mogu se praviti nove
 * [Bean validation Specification](https://beanvalidation.org/1.0/spec/)
 * [Validation, Data Binding, and Type Conversion Documentation](https://docs.spring.io/spring/docs/4.1.x/spring-framework-reference/html/validation.html)
 
-###### Pokretanje primera (Eclipse):
+## Pokretanje primera (Eclipse):
 
 * importovati projekat u workspace: Import -> Maven -> Existing Maven Project
 * instalirati sve dependency-je iz pom.xml
