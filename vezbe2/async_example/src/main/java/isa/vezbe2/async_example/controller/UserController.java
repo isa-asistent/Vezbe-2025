@@ -9,8 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
-
 @RestController
 @CrossOrigin(origins="*")
 @RequestMapping("/users")
@@ -21,18 +19,11 @@ public class UserController {
     @Autowired
     private EmailService emailService;
 
-	/*@GetMapping
-	public String getNew(Model model) {
-		model.addAttribute("user", new User());
-		return "registration";
-	}*/
-
     @PostMapping("/signup/async")
     public ResponseEntity<String> signUpAsync(@RequestBody User user){
         System.out.println("Thread id: " + Thread.currentThread().getId());
         try {
-            //slanje emaila
-            emailService.sendNotificaitionAsync(user);
+            emailService.sendNotificationAsync(user);
         }catch( Exception e ){
             logger.info("Greska prilikom slanja emaila: " + e.getMessage());
         }
@@ -44,8 +35,7 @@ public class UserController {
     public ResponseEntity<String> signUpSync(@RequestBody User user){
         System.out.println("Thread id: " + Thread.currentThread().getId());
         try {
-            //slanje emaila
-            emailService.sendNotificaitionSync(user);
+            emailService.sendNotificationSync(user);
         }catch( Exception e ){
             logger.info("Greska prilikom slanja emaila: " + e.getMessage());
         }
