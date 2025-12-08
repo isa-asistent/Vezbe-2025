@@ -1,4 +1,4 @@
-# Vežbe 5 - Spring Security
+# Vežbe 4 - Spring Security
 
 Dat je primer Spring aplikacije koja koristi _Spring Security_ radni okvir za autentifikaciju i autorizaciju. Klijentska aplikacija je Angular aplikacija.
 
