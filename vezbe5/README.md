@@ -239,7 +239,7 @@ Dokumentaciju prati i lista primera koji su javno dostupni na [GitHub repozitori
 
 - Mnogi servisi dostupni preko interneta koji pružaju mogućnost poziva svog API-ja nisu u potpunosti besplatni i podržavaju različite pakete. Način na koji se pomenuti princip može implementirati jeste ograničavanje broja poziva određene grupe korisnika. Moguće je definisati više grupa i za svaku od njih poseban broj poziva za određeni interval.
 
-## redis-cache-example
+## redis-cache u okviru rate-limiter primera
 
 U okviru primera prikazan je pristup keširanju upotrebom key-value NoSQL baze [Redis](https://redis.io/). Ova baza podataka spada u **in-memory** baze podataka (sve vrednosti se čuvaju u okviru RAM memorije računara). Dodatno, podržava perzistenciju na disk (slično EhCache).
 
