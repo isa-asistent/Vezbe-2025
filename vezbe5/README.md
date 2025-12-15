@@ -645,6 +645,6 @@ Za čitanje poruka je potrebno pokrenuti `kafka-consumer-example`. Consumer poč
 
 U okviru consumer primera postoji i `application-second properties` koji omogućava pokretanje 2 instance consumera. Prvi consumer radi na portu 8081, a drugi an portu 8082. Pošto su to dve instance iste aplikacije, obe su pretplaćene na isti topic i pripadaju istoj grupi. U konkretnom primeru sa 2 particije, ukoliko su oba consumera aktivna, svaki će čitati poruke sa tačno jedne particije. Konfiguracija za pokretanje druge instance se nalazi na slici. Obratiti pažnju na parametar `-Dspring.profiles.active=second` koji aktivira čitanje porta iz fajla `application-second.properties`
 
-![Slika 12](https://imgur.com/a/Pjg2a8M "Slika 12")
+![Slika 12](https://i.imgur.com/m3IVJ5K.png "Slika 12")
 
 
