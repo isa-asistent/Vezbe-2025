@@ -50,4 +50,9 @@
         </resources>
     </cache>
 
+    <cache alias="productList" uses-template="default">
+        <key-type>java.lang.Object</key-type>
+        <value-type>java.util.List</value-type>
+    </cache>
+
 </config>
