@@ -3,6 +3,7 @@ package rs.ac.uns.ftn.informatika.cache.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -41,8 +42,12 @@ public class ProductsController {
 	}
 	@GetMapping(value = "/{id}",
 			produces = MediaType.APPLICATION_JSON_VALUE)
-	public Product getProduct(@PathVariable int id) {
-		return productService.findOne(id);
+	public ResponseEntity<Product> getProduct(@PathVariable int id) {
+		Product product = productService.findOne(id);
+		if (product == null) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		return new ResponseEntity<>(product, HttpStatus.OK);
 	}
 	@GetMapping(value = "/search/name/{name}",
 			produces = MediaType.APPLICATION_JSON_VALUE)

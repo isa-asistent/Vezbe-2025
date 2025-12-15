@@ -59,7 +59,7 @@ public class ProductServiceImpl implements ProductService {
 
 	public Product findOne(long id) {
 		LOG.info("Product with id: " + id + " successfully cached!");
-		return productRepository.findById(id).get();
+		return productRepository.findById(id).orElse(null);
 	}
 
 	public void delete(long id) {
