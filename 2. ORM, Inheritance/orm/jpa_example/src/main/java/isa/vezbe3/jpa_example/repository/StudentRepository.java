@@ -1,13 +1,18 @@
 package isa.vezbe3.jpa_example.repository;
 
 import java.util.List;
+import java.util.Set;
 
+import isa.vezbe3.jpa_example.model.Exam;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import isa.vezbe3.jpa_example.model.Student;
+import org.springframework.data.repository.query.Param;
 
 /*
  * Primer repozitorijuma u kojem su navedene metode koje po
@@ -75,7 +80,9 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
 	 */
 	@Query("select s from Student s where s.lastName = ?1")
 	public List<Student> pronadjiStudentePoPrezimenu(String prezime);
-	
+
+	@Query("select s from Student s where s.lastName = :prezime")
+	public List<Student> pronadjiStudentePoPrezimenua(@Param("prezime") String prezime);
 	
 	//https://dzone.com/articles/how-to-decide-between-join-and-join-fetch
 	@Query("select s from Student s join fetch s.exams e where s.id =?1")

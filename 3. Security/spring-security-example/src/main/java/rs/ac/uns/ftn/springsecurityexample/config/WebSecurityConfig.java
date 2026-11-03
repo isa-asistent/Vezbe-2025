@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -12,6 +14,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -81,10 +84,12 @@ public class WebSecurityConfig {
     	// komunikacija izmedju klijenta i servera je stateless posto je u pitanju REST aplikacija
         // ovo znaci da server ne pamti nikakvo stanje, tokeni se ne cuvaju na serveru
 		// ovo nije slucaj kao sa sesijama koje se cuvaju na serverskoj strani - STATEFULL aplikacija
-        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.sessionManagement(session
+				-> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         // sve neautentifikovane zahteve obradi uniformno i posalji 401 gresku
-        http.exceptionHandling(exception -> exception.authenticationEntryPoint(restAuthenticationEntryPoint));
+        http.exceptionHandling(exception ->
+				exception.authenticationEntryPoint(restAuthenticationEntryPoint));
 
 		http.authorizeHttpRequests(auth -> auth
 			.requestMatchers("/auth/**").permitAll()		// /auth/**

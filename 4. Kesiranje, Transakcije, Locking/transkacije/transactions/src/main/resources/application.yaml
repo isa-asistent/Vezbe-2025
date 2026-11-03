@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: transactions
+
+  datasource:
+    url: jdbc:h2:mem:transactions;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop      # Hibernate generates the schema from your entities
+    defer-datasource-initialization: true   # run data.sql AFTER Hibernate creates the tables
+    open-in-view: false
+    show-sql: true
+
+  sql:
+    init:
+      mode: always               # run data.sql on startup
+
+logging:
+  level:
+    org.springframework.transaction.interceptor: TRACE
+    org.springframework.orm.jpa: DEBUG

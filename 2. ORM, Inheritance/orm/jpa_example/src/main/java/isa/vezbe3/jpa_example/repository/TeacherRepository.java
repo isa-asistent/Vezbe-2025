@@ -19,7 +19,8 @@ public interface TeacherRepository extends JpaRepository<Teacher, Integer> {
 	public void restoreById(Long id);
 
 	//mora biti native query a ne JPQL da bi se izbeglo da Hibernate doda WHERE klauzulu sa deleted = false
-	@Query(value = "SELECT id, first_name, last_name, deleted FROM teacher", nativeQuery = true)
+	@Query(value = "SELECT id, first_name, last_name, deleted FROM teacher",
+			nativeQuery = true)
 	public List<Teacher> findAllIncludingDeleted();
 
 	//mora biti native query a ne JPQL da bi se izbeglo da Hibernate doda WHERE klauzulu sa deleted = false
