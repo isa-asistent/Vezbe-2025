@@ -16,7 +16,7 @@ public class ProductQueryServiceImpl implements ProductQueryService {
     private final TransactionInspector txInspector;
 
     // Ovde zelimo da je transkacija READ ONLY. Ne zelimo da zahtevamo da Hibernate prati promene po entitetima, kako ih samo dobavljamo iz baze.
-    // Ovo radimo u slucaju da vracamo entitet kao rezultat upita u bazu.
+    // Ovo radimo u slucaju da vracamo entitet kao rezultat upita u bazu, a use-case zahteva samo njegovo dobavljanje i prezentaciju.
     @Override
     @Transactional(readOnly = true)
     public Get.Response get(Long id) {
