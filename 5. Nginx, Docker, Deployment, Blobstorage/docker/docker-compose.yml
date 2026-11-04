@@ -1,22 +1,86 @@
+# U docker compose fajlu mozete da napravite orkestraciju vasih servisa.
+# Drugim recima, mozete navesti sve vase servise (ukljucujuci i vase aplikacije),
+# njihove parametre, env varijable, konfiguracije. Ovime na jednom mestu imate definiciju
+# svih potrebnih servisa za vasu infrastrukturu, bez potrebe da svaki od njih ponaosob
+# instalirate na vasoj lokalnoj masini
 services:
+  # nakon services kljuca, slede definicije vasih servisa
+
+  # Servis "app" je u ovom slucaju backend aplikacija. Neophodno je prilikom podizanja
+  # docker compose da se izvrsi build aplikacije i da se od nje napravi Docker image (slika).
+  # Pokretanjem Docker image-a se kreira kontejner, odnosno pokrenuta instanca vaseg servisa
+  # koji je nastao iz slike.
   app:
+    # Kljucem build specificirano je kako se slika izgradjuje.
     build:
+      # context je direktorijum koji Docker koristi kao osnovu prilikom build-a
+      # (odatle se kopiraju fajlovi u sliku).
+  
       context: ./app
+      
+      # Da bi Docker mogao da napravi sliku, neophodno je da postoji Dockerfile.
+      # Dockerfile je recept za kreiranje slike: lista instrukcija koja opisuje osnovnu sliku,
+      # kopiranje source koda, instalaciju zavisnosti, konfiguraciju, komandu za pokretanje, itd.
+      # Kada se pokrene docker build, Docker na osnovu tih instrukcija kreira sliku.
+      
       dockerfile: Dockerfile
+    
+    # Unutar docker-compose.yml mozete zadati ime kontejnera, odnosno kako se on identifikuje
+    # unutar Docker okruzenja. Ako ga ne zadate, Docker ga generise sam.
+    # Napomena: servisi unutar iste compose mreze se medjusobno pronalaze po imenu servisa
+    # (npr. DB_HOST: postgres), a ne po container_name.
+    
     container_name: transactions-app
+    
+    # sa depends_on mozemo da specificiramo redosled pokretanja servisa. 
+    # U ovom slucaju ne zelimo da se kontejner koji je backend aplikacija
+    # pokrene pre no sto je baza podataka inicijalizovana.
+
+    # Napomena: depends_on sam po sebi (bez healthcheck-a) proverava samo da li je kontejner
+    # pokrenut, a ne i da li je servis unutar njega zaista spreman za rad. Zato ovde koristimo
+    # condition: service_healthy, koji ceka da healthcheck servisa postgres prodje uspesno.
+    
     depends_on:
       postgres:
         condition: service_healthy
+    
+    # Unutar servisa mozete zadati environment varijable koje kontejner "pokupi" kada se pokrene.
+    # Ove varijable se koriste u application.properties; aplikacija pri pokretanju
+    # preuzima njihove vrednosti iz okruzenja.
+    
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: transactions
       DB_USER: app
       DB_PASSWORD: app
+
+    # Kljuc ports povezuje (mapira) portove kontejnera sa portovima na nasoj lokalnoj masini.
+    # Format je: lokalni_port:port_kontejnera.
+    #
+    # U ovom slucaju aplikacija unutar kontejnera slusa na portu 8080, a mi ga izlazemo
+    # na lokalnom portu 8081, pa je aplikacija dostupna na localhost:8081.
+
     ports:
-      - "8080:8080"
+      - "8081:8080"
 
   postgres:
+    # Ako slika servisa nije nasa, odnosno nismo je mi napravili, zadajemo kljuc image.
+    # Docker ce povuci sliku iz registra kada podignemo compose.
+    #
+    # Docker trazi sliku na osnovu sledeceg formata:
+    # registar/ime_slike:tag
+    #
+    # registar: ako se ne specificira, podrazumeva se Docker Hub.
+    #
+    # ime_slike: ime repozitorijuma slike (npr. postgres), ne mora da se poklapa sa imenom servisa.
+    #
+    # tag: smatrajte ovo verzijom, varijantom slike (slim, alpine, scratch)
+    # ili bilo kojim dodatnim metapodatkom koji sliku opisuje.
+    # Ovde sam mogao da zadam npr. postgres:16-slim ili postgres:18-alpine, sto su razlicite slike.
+    # Ako ne navedete tag, podrazumevani je "latest". Ovo ne znaci nuzno najnoviju verziju,
+    # vec samo onu koju su publisheri oznacili kao "latest".
+
     image: postgres:16-alpine
     container_name: transactions-db
     environment:
@@ -25,14 +89,30 @@ services:
       POSTGRES_PASSWORD: app
     ports:
       - "5432:5432"
+    
+    # Volumeni nam sluze da bismo podatke cuvali van zivotnog ciklusa kontejnera,
+    # ili da bismo kontejner inicijalizovali podacima.
+    # Docker slike su nepromenljive. Jednom napravljene ne mogu se menjati, potrebno ih je
+    # ponovo izgraditi sa novim promenama. Podaci upisani u kontejner bez volumena nestaju
+    # kada se kontejner obrise (npr. docker compose down).
+    # Volumen se vezuje za kontejner i cuva perzistentne podatke koje kontejner koristi.
+    
     volumes:
       - pgdata:/var/lib/postgresql/data
+    
+    # Ovde specificiramo healthcheck mehanizam, kojim proveravamo da li je servis "ziv" i spreman,
+    # posto drugi servisi zavise od njega.
+    # Ne zelimo da startujemo backend aplikaciju dok nismo sigurni da ima pristup bazi.
+    # Stoga prvo proverimo da li je postgres spreman; ako jeste, pokrece se backend
+    # aplikacija (zadato putem depends_on).
+    
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U app -d transactions"]
       interval: 5s
       timeout: 3s
       retries: 10
   
+  # Ovaj servis sluzi kao klijent za pristup bazi podataka.
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: transactions-pgadmin
@@ -44,6 +124,11 @@ services:
     depends_on:
       - postgres
     volumes:
+      
+      # Ovaj fajl mapiramo u kontejner da bi se server i baza podataka automatski
+      # pojavili u pgadmin-u.
+      # U suprotnom bi smo rucno dodavali server i baze, svaki put kad se pokrene kontejner.
+      
       - ./pgadmin-servers.json:/pgadmin4/servers.json
 
 volumes:
