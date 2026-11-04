@@ -1,0 +1,50 @@
+services:
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: transactions-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: transactions
+      DB_USER: app
+      DB_PASSWORD: app
+    ports:
+      - "8080:8080"
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: transactions-db
+    environment:
+      POSTGRES_DB: transactions
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d transactions"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: transactions-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    volumes:
+      - ./pgadmin-servers.json:/pgadmin4/servers.json
+
+volumes:
+  pgdata:
