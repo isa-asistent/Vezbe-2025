@@ -22,6 +22,11 @@ public interface ProductService {
      */
     @Cacheable(value ="product", key = "#id")
     Product findOne(long id);
+    /**
+     * Kada zelimo da obirsemo iz cache memorije neki zapis, koristimo anotaciju
+     * {@link  CacheEvict}. U ovom konkretnom primeru prilikom poziva ove metode
+     * brisu se svi zapisi u cache memoriji product (specificirano putem allEntries parametra)
+     */
     @CacheEvict(cacheNames = {"product"}, key = "#id")
     void delete(long id);
 
@@ -46,9 +51,20 @@ public interface ProductService {
     )
     List<Product> findByNamedParam(String name, String origin, long price);
 
+    /**
+     * Kada zelimo da obirsemo iz cache memorije neki zapis, koristimo anotaciju
+     * {@link  CacheEvict}. U ovom konkretnom primeru prilikom poziva ove metode
+     * brisu se svi zapisi u cache memoriji product (specificirano putem allEntries parametra)
+     */
     @CacheEvict(cacheNames = {"product"}, allEntries = true)
     void removeFromCache();
 
+    /**
+     * Ukoliko zelimo da dodamo nesto u cache memoriju mozemo koristiti anotaciju
+     * {@link CachePut}. Po zavrsetku ove metode, nova vrednost entiteta ce biti sacuvana
+     * u cache memoriju "product", pod kljucem koji odogovara {@code id}.
+     * @param id identifikator proizvoda ciji se zapis zapisuje u kes memroiju
+     */
     @CachePut(cacheNames = {"product"}, key = "#id")
     Product updateProduct(Long id, Product newProduct);
 }

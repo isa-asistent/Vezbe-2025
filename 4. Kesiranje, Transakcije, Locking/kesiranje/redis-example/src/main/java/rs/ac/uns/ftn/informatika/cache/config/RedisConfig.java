@@ -37,6 +37,7 @@ public class RedisConfig {
 
         // Setup individual cache configurations via a Map (compatible with Spring Data Redis 2.1.x)
         Map<String, RedisCacheConfiguration> initialCacheConfigs = new HashMap<>();
+        initialCacheConfigs.put("product", defaultCacheConfig.entryTtl(Duration.ofSeconds(45)));
         initialCacheConfigs.put("productAll", defaultCacheConfig.entryTtl(Duration.ofSeconds(45)));
         initialCacheConfigs.put("productByName", defaultCacheConfig.entryTtl(Duration.ofSeconds(45)));
         initialCacheConfigs.put("productById", defaultCacheConfig.entryTtl(Duration.ofSeconds(45 )));
