@@ -45,7 +45,8 @@ public interface ProductService {
      */
     @Cacheable(
             value = "byNameMatch",
-            key = "#name"
+            key = "#name",
+            unless = "#result == null || #result.isEmpty()"
     )
     List<Product> findByNameMatch(String name);
     @Cacheable(

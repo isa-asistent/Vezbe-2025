@@ -20,7 +20,7 @@ public interface ProductService {
      * metodom findOne smestaju u kes kolekciju "product"
      * kao i u ehcache.xml konfiguraciji
      */
-    @Cacheable(value ="product", key = "#id")
+    @Cacheable( cacheNames = {"product"}, key = "#id")
     Product findOne(long id);
     /**
      * Kada zelimo da obirsemo iz cache memorije neki zapis, koristimo anotaciju

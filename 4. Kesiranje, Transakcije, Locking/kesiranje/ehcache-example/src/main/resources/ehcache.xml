@@ -59,7 +59,7 @@
         <key-type>java.lang.Long</key-type>
         <value-type>rs.ac.uns.ftn.informatika.cache.domain.Product</value-type>
         <expiry>
-            <tti unit="minutes">1</tti>
+            <tti unit="seconds">30</tti>
         </expiry>
         <resources>
             <heap>5</heap>

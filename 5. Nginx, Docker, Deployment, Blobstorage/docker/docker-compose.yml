@@ -30,7 +30,7 @@ services:
     # Napomena: servisi unutar iste compose mreze se medjusobno pronalaze po imenu servisa
     # (npr. DB_HOST: postgres), a ne po container_name.
     
-    container_name: transactions-app
+    container_name: app
     
     # sa depends_on mozemo da specificiramo redosled pokretanja servisa. 
     # U ovom slucaju ne zelimo da se kontejner koji je backend aplikacija
@@ -42,6 +42,9 @@ services:
     
     depends_on:
       postgres:
+        condition: service_healthy
+
+      pgadmin:
         condition: service_healthy
     
     # Unutar servisa mozete zadati environment varijable koje kontejner "pokupi" kada se pokrene.
@@ -82,13 +85,13 @@ services:
     # vec samo onu koju su publisheri oznacili kao "latest".
 
     image: postgres:16-alpine
-    container_name: transactions-db
+    container_name: db
     environment:
       POSTGRES_DB: transactions
       POSTGRES_USER: app
       POSTGRES_PASSWORD: app
     ports:
-      - "5432:5432"
+      - "5433:5432"
     
     # Volumeni nam sluze da bismo podatke cuvali van zivotnog ciklusa kontejnera,
     # ili da bismo kontejner inicijalizovali podacima.
@@ -115,14 +118,15 @@ services:
   # Ovaj servis sluzi kao klijent za pristup bazi podataka.
   pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: transactions-pgadmin
+    container_name: pgadmin
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "5050:80"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     volumes:
       
       # Ovaj fajl mapiramo u kontejner da bi se server i baza podataka automatski
@@ -130,6 +134,11 @@ services:
       # U suprotnom bi smo rucno dodavali server i baze, svaki put kad se pokrene kontejner.
       
       - ./pgadmin-servers.json:/pgadmin4/servers.json
-
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:80/misc/ping || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s   # pgAdmin is slow to boot; failures in this window don't count
 volumes:
   pgdata:
