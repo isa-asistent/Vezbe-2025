@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Example 5</title>
+    <title>CarsApp with nginx</title>
     <style>
         table {
             width: 100%;
@@ -27,35 +27,9 @@
     </style>
 
     <script type="text/javascript">
-        function loadProducts() {
-            const response = fetch('/productsapi/products').then(response => {
-                response.json().then(products => {
-
-                    document.getElementById("productsContainer").style.display = "block";
-                    document.getElementById("carsContainer").style.display = "none";
-
-                    const tableBody = document.querySelector('#productsTable tbody');
-                    tableBody.innerHTML = '';
-
-                    products.forEach(product => {
-                        const row = document.createElement('tr');
-
-                        row.innerHTML = `
-                                <td>${product.id}</td>
-                                <td>${product.name}</td>
-                                <td>${product.description}</td>
-                                <td>${product.price}</td>
-                            `;
-                        tableBody.appendChild(row);
-                    });
-                });
-            });
-        }
-
         function loadCars() {
             const response = fetch('/carsapi/cars').then(response => {
                 response.json().then(cars => {
-                    document.getElementById("productsContainer").style.display = "none";
                     const carsContainer = document.getElementById("carsContainer")
                     carsContainer.style.display = "block";
 
@@ -86,29 +60,10 @@
 </head>
 
 <body>
-    <div style="margin-bottom: 0.5rem;">
-        <button onclick="loadProducts()" style="width: 200px;">Show products</button>
-    </div>
     <div style="margin-bottom: 2rem;">
         <button onclick="loadCars()" style="width: 200px;">Show cars</button>
     </div>
 
-    <div id="productsContainer" style="display: none;">
-        <h1>Products</h1>
-        <table id="productsTable">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Price</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Products will be inserted here -->
-            </tbody>
-        </table>
-    </div>
     <div id="carsContainer" style="display: none;">
         <h1 id="carsTitle">Cars</h1>
         <table id="carsTable">
