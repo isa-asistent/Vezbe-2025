@@ -1,0 +1,36 @@
+ <div class="mx-auto w-full max-w-2xl p-4">
+      <div role="tablist" class="flex border-b border-gray-200">
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="active() === 'dont'"
+          (click)="active.set('dont')"
+          class="-mb-px flex-1 border-b-2 px-4 py-3 text-sm font-bold tracking-wide transition-colors focus:outline-none focus-visible:bg-gray-100"
+          [class]="
+            active() === 'dont'
+              ? 'border-red-600 text-red-600'
+              : 'border-transparent text-gray-500 hover:text-gray-800'
+          "
+        >
+          WHAT NOT TO DO
+        </button>
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="active() === 'do'"
+          (click)="active.set('do')"
+          class="-mb-px flex-1 border-b-2 px-4 py-3 text-sm font-bold tracking-wide transition-colors focus:outline-none focus-visible:bg-gray-100"
+          [class]="
+            active() === 'do'
+              ? 'border-green-600 text-green-600'
+              : 'border-transparent text-gray-500 hover:text-gray-800'
+          "
+        >
+          WHAT TO ACTUALLY DO
+        </button>
+      </div>
+
+      <!-- Both stay mounted so each tab keeps its own state when you switch -->
+      <app-what-not-to-do class="block pt-6" role="tabpanel" [hidden]="active() !== 'dont'" />
+      <app-what-to-do class="block pt-6" role="tabpanel" [hidden]="active() !== 'do'" />
+    </div>

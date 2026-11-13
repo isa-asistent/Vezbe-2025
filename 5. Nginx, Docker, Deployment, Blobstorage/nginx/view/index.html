@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarsApp with nginx</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 1em;
+            font-family: 'Arial', sans-serif;
+            text-align: left;
+        }
+
+        th,
+        td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+    </style>
+
+    <script type="text/javascript">
+        function loadCars() {
+            const response = fetch('/carsapi/cars').then(response => {
+                response.json().then(cars => {
+                    const carsContainer = document.getElementById("carsContainer")
+                    carsContainer.style.display = "block";
+
+                    const carsTitle = document.getElementById("carsTitle")
+                    carsTitle.innerHTML = "Cars, from server: " + cars[0]["serverName"]
+
+                    const tableBody = document.querySelector('#carsTable tbody');
+                    tableBody.innerHTML = '';
+
+                    cars.forEach(car => {
+                        const row = document.createElement('tr');
+
+                        row.innerHTML = `
+                                <td>${car.id}</td>
+                                <td>${car.make}</td>
+                                <td>${car.model}</td>
+                                <td>${car.year}</td>
+                                <td>${car.price}</td>
+
+                                <td>${car.serverName}</td>
+                            `;
+                        tableBody.appendChild(row);
+                    });
+                });
+            });
+        }
+    </script>
+</head>
+
+<body>
+    <div style="margin-bottom: 2rem;">
+        <button onclick="loadCars()" style="width: 200px;">Show cars</button>
+    </div>
+
+    <div id="carsContainer" style="display: none;">
+        <h1 id="carsTitle">Cars</h1>
+        <table id="carsTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Make</th>
+                    <th>Model</th>
+                    <th>Year</th>
+                    <th>Price</th>
+                    <th>Server</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Cars will be inserted here -->
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>

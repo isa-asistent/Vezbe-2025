@@ -1,0 +1,38 @@
+services:
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: rustfs
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - RUSTFS_ACCESS_KEY=adminadmin
+      - RUSTFS_SECRET_KEY=adminadmin
+      - RUSTFS_CORS_ALLOWED_ORIGINS=http://localhost:4200
+    volumes:
+      - rustfs_data:/data
+      - rustfs_logs:/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  rustfs-init:
+    image: amazon/aws-cli:latest
+    environment:
+      - AWS_ACCESS_KEY_ID=adminadmin
+      - AWS_SECRET_ACCESS_KEY=adminadmin
+      - AWS_DEFAULT_REGION=us-east-1
+    depends_on:
+      rustfs:
+        condition: service_healthy
+    entrypoint: >
+      sh -c "
+      echo 'Creating bucket using AWS CLI...';
+      aws --endpoint-url http://rustfs:9000 s3 mb s3://my-test-bucket || true;
+      echo 'Bucket setup complete.';
+      "
+volumes:
+  rustfs_data:
+  rustfs_logs:

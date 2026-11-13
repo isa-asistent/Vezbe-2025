@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: blob_storage
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
+rustfs:
+  s3:
+    endpoint: http://localhost:9000
+    access-key: adminadmin
+    secret-key: adminadmin
+    region: us-east-1
+    bucket-name: my-test-bucket

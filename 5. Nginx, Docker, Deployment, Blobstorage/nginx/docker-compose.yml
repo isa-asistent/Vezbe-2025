@@ -1,0 +1,212 @@
+# U docker compose fajlu mozete da napravite orkestraciju vasih servisa.
+# Drugim recima, mozete navesti sve vase servise (ukljucujuci i vase aplikacije),
+# njihove parametre, env varijable, konfiguracije. Ovime na jednom mestu imate definiciju
+# svih potrebnih servisa za vasu infrastrukturu, bez potrebe da svaki od njih ponaosob
+# instalirate na vasoj lokalnoj masini.
+#
+# U ovom primeru to su: baza podataka, Nginx i dve instance aplikacije o vozilima.
+
+# Zajednicka podesavanja za obe instance carsapp-a. Kljucevi koji pocinju sa "x-" su
+# prosirenja koja Compose ignorise, pa sluze kao mesto za delove koji se ponavljaju.
+# &carsapp je YAML anchor (ime ovog bloka), a ispod se blok ukljucuje sa <<: *carsapp.
+x-carsapp: &carsapp
+  # Kljucem build specificirano je kako se slika izgradjuje. Vrednost je direktorijum
+  # (build context) koji Docker koristi kao osnovu prilikom build-a: odatle se kopiraju
+  # fajlovi u sliku i tu se nalazi Dockerfile.
+  #
+  # Dockerfile je recept za kreiranje slike: lista instrukcija koja opisuje osnovnu sliku,
+  # kopiranje source koda, instalaciju zavisnosti, konfiguraciju, komandu za pokretanje, itd.
+  # Pokretanjem Docker image-a se kreira kontejner, odnosno pokrenuta instanca vaseg servisa
+  # koji je nastao iz slike.
+  build: ./carsapp
+
+  # Ime koje ce izgradjena slika dobiti. Obe instance koriste istu sliku,
+  # pa se ona gradi samo jednom.
+  image: nginx-example-carsapp
+
+  # Instance dele mrezni prostor (network namespace) sa nginx kontejnerom.
+  # Zbog toga nginx moze da ih gadja na 127.0.0.1:8086 i 127.0.0.1:8087, bez ikakve izmene konfiguracije.
+  #
+  # Napomena: "localhost" unutar kontejnera oznacava sam kontejner, a ne vasu masinu.
+  # Bez ovog kljuca svaki kontejner bi imao svoj mrezni prostor, pa bi u nginx.conf umesto
+  # 127.0.0.1 morala da stoje imena servisa (cars-primary:8086, cars-secondary:8086).
+  network_mode: "service:nginx"
+
+  # Ako se kontejner ugasi zbog greske, Docker ga ponovo pokrece,
+  # osim ako ste ga vi rucno zaustavili.
+  restart: unless-stopped
+
+services:
+  # nakon services kljuca, slede definicije vasih servisa
+
+  postgres:
+    # Ako slika servisa nije nasa, odnosno nismo je mi napravili, zadajemo kljuc image.
+    # Docker ce povuci sliku iz registra kada podignemo compose.
+    #
+    # Docker trazi sliku na osnovu sledeceg formata:
+    # registar/ime_slike:tag
+    #
+    # registar: ako se ne specificira, podrazumeva se Docker Hub.
+    #
+    # ime_slike: ime repozitorijuma slike (npr. postgres), ne mora da se poklapa sa imenom servisa.
+    #
+    # tag: smatrajte ovo verzijom, varijantom slike (slim, alpine, scratch)
+    # ili bilo kojim dodatnim metapodatkom koji sliku opisuje.
+    # Ovde je moglo da se zada npr. postgres:16-slim ili postgres:18-alpine, sto su razlicite slike.
+    # Ako ne navedete tag, podrazumevani je "latest". Ovo ne znaci nuzno najnoviju verziju,
+    # vec samo onu koju su publisheri oznacili kao "latest".
+    image: postgres:15-alpine
+
+    # Unutar docker-compose.yml mozete zadati ime kontejnera, odnosno kako se on identifikuje
+    # unutar Docker okruzenja. Ako ga ne zadate, Docker ga generise sam.
+    # Napomena: servisi unutar iste compose mreze se medjusobno pronalaze po imenu servisa
+    # (npr. postgres:5432), a ne po container_name.
+    container_name: postgres_db_service
+
+    # Unutar servisa mozete zadati environment varijable koje kontejner "pokupi" kada se pokrene.
+    # Postgres slika na osnovu njih pri prvom pokretanju kreira korisnika i bazu podataka.
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: carsdb
+
+    # Port 5432 se namerno ne objavljuje na host-u: bazi pristupaju samo kontejneri
+    # preko docker mreze (postgres:5432), pa nema sukoba sa lokalno instaliranim Postgres-om.
+
+    # Volumeni nam sluze da bismo podatke cuvali van zivotnog ciklusa kontejnera,
+    # ili da bismo kontejner inicijalizovali podacima.
+    # Docker slike su nepromenljive. Jednom napravljene ne mogu se menjati, potrebno ih je
+    # ponovo izgraditi sa novim promenama. Podaci upisani u kontejner bez volumena nestaju
+    # kada se kontejner obrise (npr. docker compose down).
+    # Volumen se vezuje za kontejner i cuva perzistentne podatke koje kontejner koristi.
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    # Ovde specificiramo healthcheck mehanizam, kojim proveravamo da li je servis "ziv" i spreman,
+    # posto drugi servisi zavise od njega.
+    # Ne zelimo da startujemo backend aplikaciju dok nismo sigurni da ima pristup bazi.
+    # Stoga prvo proverimo da li je postgres spreman; ako jeste, pokrecu se instance
+    # aplikacije (zadato putem depends_on).
+    healthcheck:
+      # -h localhost: tokom inicijalizacije baza slusa samo na socket-u, pa je "healthy" tek kad je spremna
+      test: ["CMD-SHELL", "pg_isready -h localhost -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # Nginx je reverse proxy: jedina ulazna tacka u infrastrukturu. Rutira zahteve na
+  # instance aplikacije, balansira opterecenje izmedju njih i servira index.html.
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: nginx_service
+
+    # Kljuc ports povezuje (mapira) portove kontejnera sa portovima na nasoj lokalnoj masini.
+    # Format je: lokalni_port:port_kontejnera.
+    #
+    # Nginx unutar kontejnera slusa na portu 8787 (zadato u nginx.conf), i izlazemo ga
+    # na istom lokalnom portu, pa je aplikacija dostupna na localhost:8787.
+    # Instance aplikacije i baza nemaju objavljene portove, pa su sakrivene iza Nginx-a.
+    ports:
+      - "8787:8787"
+
+    volumes:
+      # Ovde se umesto imenovanog volumena mapira fajl sa nase masine u kontejner (bind mount).
+      # Format je: putanja_na_masini:putanja_u_kontejneru. Na ovaj nacin gotovoj nginx slici
+      # prosledjujemo nasu konfiguraciju, na mesto gde je Nginx ocekuje.
+      # Sufiks :ro znaci da kontejner fajl moze samo da cita (read-only).
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+
+      # index.html se montira na istu apsolutnu putanju koja je navedena kao "root" u nginx.conf
+      # TODO: promeniti ovo na vasu apsolutnu putanju pre pokretanja
+      #
+      # Ovo je isti bind mount kao iznad, samo zapisan u duzem obliku, koji je pregledniji
+      # kada putanja sadrzi razmake i zareze.
+      - type: bind
+        source: ./view
+        target: "/Users/ivanak/Documents/NASTAVA/ISA-NVT/5. Nginx, Docker, Deployment, Blobstorage/nginx/view"
+        read_only: true
+    restart: unless-stopped
+
+  # Prva instanca aplikacije o vozilima. Slika se gradi iz izvornog koda (carsapp/Dockerfile),
+  # sto je zadato u zajednickom bloku x-carsapp na vrhu fajla.
+  cars-primary:
+    <<: *carsapp
+    container_name: cars_primary
+
+    # Ove varijable zamenjuju ono sto se pri lokalnom pokretanju zadaje kroz VM Options
+    # (-Dserver.port=8086 -Dspring.application.name=cars-api-primary).
+    # Spring Boot varijable okruzenja sam mapira na podesavanja (SERVER_PORT -> server.port)
+    # i one imaju prednost u odnosu na vrednosti iz application.properties.
+    environment:
+      SERVER_PORT: 8086
+      SPRING_APPLICATION_NAME: cars-api-primary
+      # unutar kontejnera "localhost" nije baza, vec se gadja servis "postgres" po imenu
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/carsdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: root
+
+    # Ovde nema kljuca ports: instance aplikacije nisu dostupne direktno sa vase masine,
+    # vec iskljucivo preko Nginx-a (localhost:8787/carsapi).
+
+    # Sa depends_on mozemo da specificiramo redosled pokretanja servisa.
+    # U ovom slucaju ne zelimo da se kontejner koji je backend aplikacija
+    # pokrene pre no sto je baza podataka inicijalizovana.
+    #
+    # Napomena: depends_on sam po sebi (bez healthcheck-a) proverava samo da li je kontejner
+    # pokrenut, a ne i da li je servis unutar njega zaista spreman za rad. Zato za bazu koristimo
+    # condition: service_healthy, koji ceka da healthcheck servisa postgres prodje uspesno.
+    #
+    # Nginx mora biti pokrenut pre aplikacije, jer aplikacija koristi njegov mrezni prostor.
+    depends_on:
+      nginx:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+
+  # Druga instanca iste aplikacije: ista slika, drugi port i drugo ime.
+  cars-secondary:
+    <<: *carsapp
+    container_name: cars_secondary
+    environment:
+      SERVER_PORT: 8087
+      SPRING_APPLICATION_NAME: cars-api-secondary
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/carsdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: root
+      # Baza je deljena: samo primarna instanca kreira tabele i puni import.sql.
+      # Da i ova radi "create", obrisala bi tabele dok ih primarna koristi.
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+    depends_on:
+      nginx:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      # druga instanca se pokrece nakon prve, koja kreira tabele
+      cars-primary:
+        condition: service_started
+
+  # Ovaj servis sluzi kao klijent za pristup bazi podataka (pregled tabela i podataka).
+  # Posto port baze nije objavljen na vasoj masini, pgAdmin joj pristupa preko docker mreze,
+  # a vi pgAdmin-u pristupate iz pretrazivaca na localhost:5050.
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: cars_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    volumes:
+      # Ovaj fajl mapiramo u kontejner da bi se server i baza podataka automatski
+      # pojavili u pgadmin-u.
+      # U suprotnom bismo rucno dodavali server i bazu, svaki put kad se pokrene kontejner.
+      - ./pgadmin-servers.json:/pgadmin4/servers.json
+
+# Imenovani volumeni koje servisi koriste moraju biti navedeni i ovde.
+# Docker ih kreira pri prvom pokretanju i cuva dok ih eksplicitno ne obrisete
+# (docker compose down -v).
+volumes:
+  postgres_data:

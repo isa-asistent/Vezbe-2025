@@ -1,0 +1,12 @@
+services:
+  redis:
+    # Alpine slika za Redis
+    image: redis:alpine
+    container_name: redis-cache
+    # Namesti port na kom servis slusa na 6379 (podrazumevani redis port)
+    ports:
+      - "6379:6379"
+    # "--notify-keyspace-events" omogucava da redis prilikom operacija INSERT, EVICT i EXPIRY objavi neki tip dogadjaja. 
+    # Ovo je zgodno ako pojedine vrednosti cuvate u Redis-u, a zelite da reagujete na dogadjaje
+    command: redis-server --notify-keyspace-events AKE
+    restart: unless-stopped

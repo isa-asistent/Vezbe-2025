@@ -1,0 +1,45 @@
+<div class="mx-auto max-w-2xl p-6">
+    <h1 class="mb-6 text-2xl font-semibold text-gray-900">Temperatures</h1>
+
+    <div class="mb-4 flex flex-wrap items-end justify-between gap-4">
+        <div class="flex flex-col gap-1">
+            <label for="span" class="text-sm font-medium text-gray-700">Span</label>
+            <select id="span" [(ngModel)]="span" (ngModelChange)="load()" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm
+               focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+                @for (s of spans; track s.value) {
+                <option [value]="s.value">{{ s.label }}</option>
+                }
+            </select>
+        </div>
+
+        <button type="button" (click)="createReading()" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm
+             transition hover:bg-blue-700 focus:outline-none focus:ring-2
+             focus:ring-blue-500/50 active:bg-blue-800">
+            Create new reading
+        </button>
+    </div>
+
+    <!-- View toggle -->
+    <div class="mb-4 inline-flex rounded-lg border border-gray-200 bg-gray-100 p-1" role="tablist">
+        @for (v of views; track v.value) {
+        <button type="button" role="tab" [attr.aria-selected]="view() === v.value" (click)="view.set(v.value)"
+            class="rounded-md px-4 py-1.5 text-sm font-medium transition" [class.bg-white]="view() === v.value"
+            [class.text-gray-900]="view() === v.value" [class.shadow-sm]="view() === v.value"
+            [class.text-gray-500]="view() !== v.value" [class.hover:text-gray-700]="view() !== v.value">
+            {{ v.label }}
+        </button>
+        }
+    </div>
+
+    @if (readings().length === 0) {
+    <div class="rounded-lg border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500">
+        No readings in this span.
+    </div>
+    } @else if (view() === 'table') {
+    <app-temperature-table [readings]="readings()" />
+    } @else if (view() === 'graph') {
+    <app-temperature-graph [readings]="readings()" />
+    } @else {
+        <app-temperature-grafana [span]="span()"/>
+    }
+</div>

@@ -1,0 +1,31 @@
+@if (chart(); as c) {
+  <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+    <svg [attr.viewBox]="'0 0 ' + width + ' ' + height" class="h-auto w-full" role="img"
+         aria-label="Temperature over time">
+      <!-- Grid lines and Y labels -->
+      @for (t of c.ticks; track t.y) {
+        <line [attr.x1]="c.left" [attr.x2]="c.right" [attr.y1]="t.y" [attr.y2]="t.y"
+              class="stroke-gray-200" stroke-width="1" />
+        <text [attr.x]="c.left - 6" [attr.y]="t.y + 4" text-anchor="end"
+              class="fill-gray-500 text-xs">{{ t.label }}°</text>
+      }
+
+      <!-- Line -->
+      <path [attr.d]="c.path" fill="none" class="stroke-blue-600" stroke-width="2"
+            stroke-linejoin="round" stroke-linecap="round" />
+
+      <!-- Points with hover tooltip -->
+      @for (p of c.points; track p.timeStamp + p.value) {
+        <circle [attr.cx]="p.x" [attr.cy]="p.y" r="4" class="fill-blue-600 stroke-white" stroke-width="1.5">
+          <title>{{ p.value }} °C · {{ p.timeStamp | date: 'medium' }}</title>
+        </circle>
+      }
+
+      <!-- X labels: first and last timestamp -->
+      <text [attr.x]="c.left" [attr.y]="c.bottom" text-anchor="start"
+            class="fill-gray-500 text-xs">{{ c.start | date: 'short' }}</text>
+      <text [attr.x]="c.right" [attr.y]="c.bottom" text-anchor="end"
+            class="fill-gray-500 text-xs">{{ c.end | date: 'short' }}</text>
+    </svg>
+  </div>
+}

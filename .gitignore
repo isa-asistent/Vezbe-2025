@@ -76,3 +76,72 @@ __pycache__/
 *$py.class
 
 vezbe5/kafka-producer-example/data/
+
+# ==========================================
+# IntelliJ IDEA (.idea) Exclusions
+# ==========================================
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# ==========================================
+# Java & Build Tools (Maven/Gradle) Exclusions
+# ==========================================
+# Compiled class files
+*.class
+
+# Log files
+*.log
+
+# Package outputs (if building locally)
+*.jar
+*.war
+*.ear
+*.nar
+
+# Maven build directory
+target/
+
+# Gradle build directory
+build/
+.gradle/
+
+# Crash dumps
+hs_err_pid*
+
+# ==========================================
+# Angular & Node/NPM Exclusions
+# ==========================================
+# Dependency directories
+node_modules/
+**/node_modules/**
+
+**/node_modules/
+
+**/node_modules/*
+*/node_modules/
+*/node_modules/*
+*/node_modules/**
+.pnpm-store/
+
+# Angular build outputs and caches
+/dist/
+/out-tsc/
+/.angular/
+.angular/
+
+# Temporary and test artifacts
+/tmp/
+/coverage/
+/e2e/test-output/
+*.tsbuildinfo
+
+# NPM/Yarn log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local environment configuration
+.env

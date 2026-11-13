@@ -1,0 +1,61 @@
+<div class="space-y-5">
+  <label (dragover)="onDragOver($event)" (dragleave)="dragging.set(false)" (drop)="onDrop($event)"
+    class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors"
+    [class]="
+      dragging()
+        ? 'border-gray-900 bg-gray-100'
+        : 'border-gray-300 bg-gray-50 hover:border-gray-500 hover:bg-gray-100'
+    ">
+    <svg class="mb-3 h-8 w-8 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round"
+        d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 7.5L12 3m0 0L7.5 7.5M12 3v13.5" />
+    </svg>
+    <span class="text-sm font-medium text-gray-800">
+      {{ uploaded() ? 'Replace image' : 'Click to upload or drag an image here' }}
+    </span>
+    <span class="mt-1 text-xs text-gray-500">PNG, JPG, GIF, WebP</span>
+    <input type="file" accept="image/*" class="sr-only" (change)="onFileSelected($event)" />
+  </label>
+
+  @if (error()) {
+  <p role="alert" class="text-sm text-red-600">{{ error() }}</p>
+  }
+
+  @if (uploading()) {
+  <p class="text-sm text-gray-600">Uploading…</p>
+  }
+
+  @if (uploaded(); as u) {
+  @if (!uploading()) {
+  <div class="flex items-center gap-3">
+    <p class="text-sm text-green-700">Uploaded {{ u.key }}.</p>
+
+    @if (!result()) {
+    <button type="button" (click)="download()" [disabled]="downloading()"
+      class="rounded-lg bg-gray-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-gray-700 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2">
+      {{ downloading() ? 'Downloading…' : 'Download' }}
+    </button>
+    }
+  </div>
+  }
+  }
+
+  @if (result(); as r) {
+  <figure class="overflow-hidden rounded-xl border border-gray-200 bg-white">
+    <img [src]="r.url" [alt]="r.key" (error)="onImageError()" class="max-h-[28rem] w-full object-contain" />
+    <figcaption class="border-t border-gray-200 px-4 py-2 text-xs text-gray-500">
+      {{ r.key }}
+    </figcaption>
+  </figure>
+  }
+  
+
+  @if (uploaded()) {
+  <button type="button" (click)="clear()"
+    class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2">
+    Remove
+  </button>
+  } @else if (!uploading()) {
+  <p class="text-sm text-gray-500">Upload an image, then click Download to view it.</p>
+  }
+</div>
